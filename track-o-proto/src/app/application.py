@@ -1,7 +1,10 @@
-from app.firebase.firebase_connector import get_users
+from app.firebase.firebase_connector import get_username_by_id, get_users
 
-userId = "f03f6cc7-6983-4a40-9a6c-d7f4e5174ad3"
+userId = "5ae8a782b7340c1e60ae9f32"
 
 def go_for_it_girl(argv):
-    print("hello world. - " + userId)
-    get_users()
+    print("Monitoring user with ID: " + userId)
+
+    #while (True):
+    get_username_by_id(userId)
+    #get_users()

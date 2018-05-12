@@ -10,9 +10,14 @@ config = {
   #messagingSenderId: "730229429000"
 }
 
-def get_users():
-    firebase = pyrebase.initialize_app(config)
+db = pyrebase.initialize_app(config).database()
 
-    db = firebase.database()
-    users = db.child("users").get()
-    print(users.val()) # {"Morty": {"name": "Mortimer 'Morty' Smith"}, "Rick": {"name": "Rick Sanchez"}}
+def get_users():
+  users = db.child("users").get()
+  print(users.val())
+
+def get_username_by_id(userId):
+  all_users = db.child("users").child(userId).get().val()
+  print(all_users) # {name": "Mortimer 'Morty' Smith"}
+
+
