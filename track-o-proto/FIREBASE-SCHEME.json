@@ -1,0 +1,35 @@
+{
+    "users":[{
+        "user":{
+            "id":"f03f6cc7-6983-4a40-9a6c-d7f4e5174ad3",
+            "antennas":[{
+                "antenna":{ "id":"2487cbed-f869-4140-be3c-0e08ee6dd0c7" }
+            }],
+            "beacons":[{
+                "beacon":{
+                    "macAddress":"91:1D:DD:52:02:6D",
+                    "connectionStatus":2,
+                    "antennaId":"2487cbed-f869-4140-be3c-0e08ee6dd0c7"
+                }
+            }]
+        },
+        "user":{
+            "id":"26158f40-7928-46aa-a754-09a659f5edd6",
+            "antennas":[{
+                "antenna":{ "id":"1d5d84d2-06e5-4d2b-931d-227293e6321c" }
+            }],
+            "beacons":[{
+                "beacon":{
+                    "macAddress":"8B:45:7F:BD:74:34",
+                    "connectionStatus":1,
+                    "antennaId":"1d5d84d2-06e5-4d2b-931d-227293e6321c"
+                },
+                "beacon":{
+                    "macAddress":"C1:E0:7D:39:24:C7",
+                    "connectionStatus":1,
+                    "antennaId":"1d5d84d2-06e5-4d2b-931d-227293e6321c"
+                }
+            }]
+        }
+    }]
+}
