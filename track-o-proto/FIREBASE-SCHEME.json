@@ -1,37 +1,31 @@
 {
     "users":[{
-        "5ae8a782b7340c1e60ae9f32":{
-            "id":"5ae8a782b7340c1e60ae9f32",
-            "name":"jacksongarcia",
-            "antennas":[{
-                "antenna":{ "id":"2487cbed-f869-4140-be3c-0e08ee6dd0c7" }
-            }],
-            "beacons":[{
-                "beacon":{
-                    "macAddress":"91:1D:DD:52:02:6D",
-                    "connectionStatus":2,
-                    "antennaId":"2487cbed-f869-4140-be3c-0e08ee6dd0c7"
-                }
-            }]
+        "id":"5ae8a782b7340c1e60ae9f32",
+        "name":"jacksongarcia",
+        "antennas":[{
+            "id":"2487cbed-f869-4140-be3c-0e08ee6dd0c7" 
+        }],
+        "beacons":[{
+            "macAddress":"91:1D:DD:52:02:6D",
+            "connectionStatus":2,
+            "antennaId":"2487cbed-f869-4140-be3c-0e08ee6dd0c7"
+        }]
+    },
+    {
+        "id":"5ae905972f3b9e000416b45e",
+        "name":"rohanaceres",
+        "antennas":[{
+            "id":"1d5d84d2-06e5-4d2b-931d-227293e6321c"
+        }],
+        "beacons":[{
+            "macAddress":"8B:45:7F:BD:74:34",
+            "connectionStatus":1,
+            "antennaId":"1d5d84d2-06e5-4d2b-931d-227293e6321c"
         },
-        "5ae905972f3b9e000416b45e":{
-            "id":"5ae905972f3b9e000416b45e",
-            "name":"rohanaceres",
-            "antennas":[{
-                "antenna":{ "id":"1d5d84d2-06e5-4d2b-931d-227293e6321c" }
-            }],
-            "beacons":[{
-                "beacon":{
-                    "macAddress":"8B:45:7F:BD:74:34",
-                    "connectionStatus":1,
-                    "antennaId":"1d5d84d2-06e5-4d2b-931d-227293e6321c"
-                },
-                "beacon":{
-                    "macAddress":"C1:E0:7D:39:24:C7",
-                    "connectionStatus":1,
-                    "antennaId":"1d5d84d2-06e5-4d2b-931d-227293e6321c"
-                }
-            }]
-        }
+        {
+            "macAddress":"C1:E0:7D:39:24:C7",
+            "connectionStatus":1,
+            "antennaId":"1d5d84d2-06e5-4d2b-931d-227293e6321c"
+        }]
     }]
 }
