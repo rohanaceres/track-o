@@ -1,7 +1,8 @@
 {
     "users":[{
-        "user":{
-            "id":"f03f6cc7-6983-4a40-9a6c-d7f4e5174ad3",
+        "5ae8a782b7340c1e60ae9f32":{
+            "id":"5ae8a782b7340c1e60ae9f32",
+            "name":"jacksongarcia",
             "antennas":[{
                 "antenna":{ "id":"2487cbed-f869-4140-be3c-0e08ee6dd0c7" }
             }],
@@ -13,8 +14,9 @@
                 }
             }]
         },
-        "user":{
-            "id":"26158f40-7928-46aa-a754-09a659f5edd6",
+        "5ae905972f3b9e000416b45e":{
+            "id":"5ae905972f3b9e000416b45e",
+            "name":"rohanaceres",
             "antennas":[{
                 "antenna":{ "id":"1d5d84d2-06e5-4d2b-931d-227293e6321c" }
             }],

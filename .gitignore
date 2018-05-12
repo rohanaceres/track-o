@@ -102,3 +102,6 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# firebase key
+track-o-proto/src/app/firebase/auth/*
