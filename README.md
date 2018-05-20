@@ -12,8 +12,13 @@ TODO
 
 ### install bluez:
 
+```
 sudo apt-get update
 sudo apt-get install python-pip python-dev ipython
 
 sudo apt-get install bluetooth libbluetooth-dev
-sudo pip install pybluez
+sudo pip3 install pybluez
+sudo pip3 install pyrebase
+sudo pip3 install --upgrade google-auth-oauthlib
+sudo pip3 install simplejson
+```
