@@ -1,5 +1,6 @@
 from app.firebase.firebase_connector import get_username_by_id, get_users
 from app.models.user import User
+from app.ble.bluetooth_scanner import scan
 
 userId = "5ae8a782b7340c1e60ae9f32"
 
@@ -25,4 +26,6 @@ def go_for_it_girl(argv):
         print("Status: " + str(beacon.connection_status))
         print("Antenna ID: " + beacon.antenna_id)
         print("----------------")
+
+    scan(user.beacons[0].mac_address)
     
