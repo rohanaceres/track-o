@@ -9,9 +9,9 @@ def go_for_it_girl(argv):
 
     user_json = get_user_by_id(user_id)
 
-    print(get_users())
+    print(user_json)
 
-    if not user_json:
+    if user_json:
         user = User(user_json)
         
         print("User name: " + user.name)
