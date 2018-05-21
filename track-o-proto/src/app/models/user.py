@@ -10,7 +10,7 @@ class User():
 
     def __init__(self, json_content):
         parsed_json = json.loads(json_content)
-        
+
         # Parse user information:
         self.id = parsed_json['id']
         self.name = parsed_json['name']

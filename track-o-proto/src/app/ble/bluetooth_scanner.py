@@ -34,7 +34,6 @@ import requests
 import signal
 import threading
 
-
 LE_META_EVENT = 0x3e
 OGF_LE_CTL=0x08
 OCF_LE_SET_SCAN_ENABLE=0x000C
@@ -60,32 +59,41 @@ def handler(signum = None, frame = None):
     sys.exit(0)   
     
 def scan(beacon_mac_address):
+    beacon_found = False
+
     for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
         signal.signal(sig, handler)
 
+    # Setup logging:
     FORMAT = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     if "logOutFilename" in globals() :
         logging.basicConfig(format=FORMAT,filename=logOutFilename,level=logLevel)
     else:
         logging.basicConfig(format=FORMAT,level=logLevel)
 
-    #Reset Bluetooth interface, hci0
+    # Reset Bluetooth interface, hci0
     os.system("sudo hciconfig hci0 down")
     os.system("sudo hciconfig hci0 up")
 
-    #Make sure device is up
+    # Make sure device is up
     interface = subprocess.Popen(["sudo hciconfig"], stdout=subprocess.PIPE, shell=True)
     (output, err) = interface.communicate()
 
+    # Get the output from bytes to text (UTF-8):
     output = output.decode("utf-8")
 
-    if "RUNNING" in output: #Check return of hciconfig to make sure it's up
+    # Check return of hciconfig to make sure it's up:
+    # (This validation will only make sense if the hci0 is the only hci available.)
+    if "RUNNING" in output: 
         logging.debug('Ok hci0 interface Up n running !')
     else:
         logging.critical('Error : hci0 interface not Running. Do you have a BLE device connected to hci0 ? Check with hciconfig !')
         sys.exit(1)
-        
+    
+    # Define the hci number. In this case, hci0:
     devId = 0
+
+    # Try to open connection with hci0:
     try:
         sock = bluez.hci_open_dev(devId)
         logging.debug('Connect to bluetooth device %i',devId)
@@ -93,53 +101,71 @@ def scan(beacon_mac_address):
         logging.critical('Unable to connect to bluetooth device...')
         sys.exit(1)
 
-    old_filter = sock.getsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, 14)
+    # Gets the value of the given socket option, which can contain 14 characteres 
+    # at maximum:
+    old_filter = sock.getsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, 14)
     hci_toggle_le_scan(sock, 0x01)
 
-
+    # Start scanning!
     while True:
-        old_filter = sock.getsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, 14)
-        flt = bluez.hci_filter_new()
-        bluez.hci_filter_all_events(flt)
-        bluez.hci_filter_set_ptype(flt, bluez.HCI_EVENT_PKT)
-        sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, flt )
+        old_filter = sock.getsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, 14)
         
+        # Creates new filter:
+        new_filter = bluez.hci_filter_new()
+        bluez.hci_filter_all_events(new_filter)
+        bluez.hci_filter_set_ptype(new_filter, bluez.HCI_EVENT_PKT)
+        sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, new_filter)
+        
+        # Receive data from the socket (255 bytes at maximum):
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
 
-        if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI:
-                i =0
-        elif event == bluez.EVT_NUM_COMP_PKTS:
-                i =0 
-        elif event == bluez.EVT_DISCONN_COMPLETE:
-                i =0 
+        # Verifies the tyoe of the event received by the socket:
+        if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI or event == bluez.EVT_NUM_COMP_PKTS or event == bluez.EVT_DISCONN_COMPLETE:
+            i =0
         elif event == LE_META_EVENT:
-                subevent = pkt[3]
-                
-                pkt = pkt[4:]
-                if subevent == EVT_LE_CONN_COMPLETE:
-                    le_handle_connection_complete(pkt)
-                elif subevent == EVT_LE_ADVERTISING_REPORT:
-                    num_reports = pkt[0]
-                    report_pkt_offset = 0
-                    for i in range(0, num_reports):
-                        macAdressSeen=packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
-                        found=0
-                        print(macAdressSeen + " - " + beacon_mac_address)
-                        if (macAdressSeen == beacon_mac_address):
-                            for tag in TAG_DATA:
-                                if macAdressSeen.lower() == tag[1].lower(): 
-                                    elapsed_time=time.time()-tag[3]  # lastseen
-                                    rssi=''.join(c for c in str(pkt[report_pkt_offset -1]) if c in '-0123456789')
-                                    if elapsed_time>tag[2] : 
-                                        tag[2]=elapsed_time
-                                    logging.debug('Tag %s is back after %i sec. (Max %i). RSSI %s. DATA %s',tag[0],elapsed_time,tag[2],rssi, pkt[report_pkt_offset -2])
-                                    tag[3]=time.time()   # update lastseen
-                                    found=1
-                                    
-                            if found==0 :
-                                    TAG_DATA.append([macAdressSeen,macAdressSeen,0,time.time()])
-                                    logging.debug('New Beacon %s Detected ', macAdressSeen)
-        sock.setsockopt( bluez.SOL_HCI, bluez.HCI_FILTER, old_filter )
+            subevent = pkt[3]
+            
+            pkt = pkt[4:]
+
+            if subevent == EVT_LE_CONN_COMPLETE:
+                le_handle_connection_complete(pkt)
+
+            elif subevent == EVT_LE_ADVERTISING_REPORT:
+                num_reports = pkt[0]
+                report_pkt_offset = 0
+
+                for i in range(0, num_reports):
+                    macAdressSeen = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
+                    new_device = True
+
+                    print("Expected: '" + beacon_mac_address + "' // Actual: '" + macAdressSeen + "'")
+                    print("TAG_DATA")
+                    print(TAG_DATA)
+                    print("----------------")
+
+                    if (macAdressSeen == beacon_mac_address):
+                        # Beacon already found, just updating it's data:
+                        if (beacon_found == True) and (macAdressSeen.lower() == tag[1].lower()):
+                            # Gets last time the beacon was seen:
+                            elapsed_time = time.time() - tag[3]  
+                            rssi=''.join(c for c in str(pkt[report_pkt_offset -1]) if c in '-0123456789')
+                            
+                            if elapsed_time > tag[2]: 
+                                tag[2] = elapsed_time
+                            
+                            logging.debug('Tag %s is back after %i sec. (Max %i). RSSI %s. DATA %s', tag[0], elapsed_time, tag[2], rssi, pkt[report_pkt_offset -2])
+                            
+                            # Updates the last time the beacon was seen:
+                            tag[3] = time.time()
+                            new_device = False
+                        
+                        # Beacon found for the first time!
+                        elif beacon_found == False:
+                            TAG_DATA.append([macAdressSeen, macAdressSeen, 0, time.time()])
+                            logging.debug('New beacon with MAC Address \'%s\' detected.', macAdressSeen)
+                            beacon_found = True
+
+        sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
         time.sleep(1)
 
