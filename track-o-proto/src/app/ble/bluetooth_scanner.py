@@ -9,10 +9,10 @@
 #   Version : 1.0
 #
 
-TAG_DATA = [  
-           ]
+from app.ble.bluetooth_tag import BluetoothTag 
 
-           
+ble_tag = BluetoothTag()
+
 import logging
 
 # choose between DEBUG (log every information) or CRITICAL (only error)
@@ -107,6 +107,8 @@ def scan(beacon_mac_address):
     hci_toggle_le_scan(sock, 0x01)
 
     # Start scanning!
+    print("Scanning...")
+
     while True:
         old_filter = sock.getsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, 14)
         
@@ -139,33 +141,27 @@ def scan(beacon_mac_address):
                     macAdressSeen = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
                     new_device = True
 
-                    print("Expected: '" + beacon_mac_address + "' // Actual: '" + macAdressSeen + "'")
-                    print("TAG_DATA")
-                    print(TAG_DATA)
-                    print("----------------")
-
-                    if (macAdressSeen == beacon_mac_address):
+                    if (macAdressSeen.lower() == beacon_mac_address.lower()):
                         # Beacon already found, just updating it's data:
-                        if (beacon_found == True) and (macAdressSeen.lower() == tag[1].lower()):
+                        if (beacon_found == True):
                             # Gets last time the beacon was seen:
-                            elapsed_time = time.time() - tag[3]  
+                            elapsed_time = time.time() - ble_tag.last_time_seen
                             rssi=''.join(c for c in str(pkt[report_pkt_offset -1]) if c in '-0123456789')
                             
-                            if elapsed_time > tag[2]: 
-                                tag[2] = elapsed_time
-                            
-                            logging.debug('Tag %s is back after %i sec. (Max %i). RSSI %s. DATA %s', tag[0], elapsed_time, tag[2], rssi, pkt[report_pkt_offset -2])
+                            ble_tag.rssid = rssi
+
+                            logging.debug('Tag %s is back after %i sec. (Max %s). RSSI %s. DATA %s', ble_tag.mac_address, int(elapsed_time), str(ble_tag.max_time_out), rssi, pkt[report_pkt_offset -2])
                             
                             # Updates the last time the beacon was seen:
-                            tag[3] = time.time()
+                            ble_tag.last_time_seen = time.time()
                             new_device = False
                         
                         # Beacon found for the first time!
                         elif beacon_found == False:
-                            TAG_DATA.append([macAdressSeen, macAdressSeen, 0, time.time()])
+                            ble_tag.mac_address = macAdressSeen
+                            ble_tag.last_time_seen = time.time()
                             logging.debug('New beacon with MAC Address \'%s\' detected.', macAdressSeen)
                             beacon_found = True
 
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
-        time.sleep(1)
 
