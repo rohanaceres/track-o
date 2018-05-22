@@ -33,6 +33,7 @@ import time
 import requests
 import signal
 import threading
+import datetime
 
 LE_META_EVENT = 0x3e
 OGF_LE_CTL=0x08
@@ -109,6 +110,8 @@ def scan(beacon_mac_address):
     # Start scanning!
     print("Scanning...")
 
+    call_count = 0
+
     while True:
         old_filter = sock.getsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, 14)
         
@@ -122,9 +125,10 @@ def scan(beacon_mac_address):
         pkt = sock.recv(255)
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
 
-        # Verifies the tyoe of the event received by the socket:
+        # Verifies the type of the event received by the socket:
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI or event == bluez.EVT_NUM_COMP_PKTS or event == bluez.EVT_DISCONN_COMPLETE:
             i =0
+            
         elif event == LE_META_EVENT:
             subevent = pkt[3]
             
@@ -141,27 +145,35 @@ def scan(beacon_mac_address):
                     macAdressSeen = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
                     new_device = True
 
+                    # Specified beacon found:
                     if (macAdressSeen.lower() == beacon_mac_address.lower()):
                         # Beacon already found, just updating it's data:
                         if (beacon_found == True):
-                            # Gets last time the beacon was seen:
-                            elapsed_time = time.time() - ble_tag.last_time_seen
+
                             rssi=''.join(c for c in str(pkt[report_pkt_offset -1]) if c in '-0123456789')
-                            
                             ble_tag.rssid = rssi
 
-                            logging.debug('Tag %s is back after %i sec. (Max %s). RSSI %s. DATA %s', ble_tag.mac_address, int(elapsed_time), str(ble_tag.max_time_out), rssi, pkt[report_pkt_offset -2])
+                            logging.debug('Tag %s is back. (Count %i // Max %s). RSSI %s. DATA %s', ble_tag.mac_address, call_count, str(ble_tag.max_time_out_in_seconds), rssi, pkt[report_pkt_offset -2])
                             
-                            # Updates the last time the beacon was seen:
-                            ble_tag.last_time_seen = time.time()
                             new_device = False
                         
                         # Beacon found for the first time!
                         elif beacon_found == False:
                             ble_tag.mac_address = macAdressSeen
-                            ble_tag.last_time_seen = time.time()
                             logging.debug('New beacon with MAC Address \'%s\' detected.', macAdressSeen)
                             beacon_found = True
+
+                        call_count = 0
+
+                    # Other beacon found:
+                    else:
+                        # Increases the time the specified beacon is not found:
+                        call_count += 1
+
+        # Verify if the beacon is not responding for a period of time greater than the estimated:
+        if (call_count > ble_tag.max_time_out_in_seconds):
+            # Beacon is disconnected!
+            logging.debug("***** BEACON IS OUT!!! %s *****", datetime.datetime.now())
 
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
 

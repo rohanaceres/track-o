@@ -1,4 +1,4 @@
-from app.firebase.firebase_connector import get_user_by_id, get_users
+from app.firebase.firebase_connector import get_user_by_id, get_users, update_connectionStatus_by_id
 from app.models.user import User
 from app.ble.bluetooth_scanner import scan
 
@@ -29,6 +29,9 @@ def go_for_it_girl(argv):
             print("Status: " + str(beacon.connection_status))
             print("Antenna ID: " + beacon.antenna_id)
             print("----------------")
+
+        # TODO: Implementar!
+        #update_connectionStatus_by_id(user_id, user.beacons[0].mac_address)
 
         scan(user.beacons[0].mac_address)
 

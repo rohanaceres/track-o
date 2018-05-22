@@ -28,9 +28,14 @@ root = db.reference()
 def get_users():
   return root.child("users2").get()
 
-def get_user_by_id(userId):
-  all_users = root.child("users2").child(userId).get()
-  output_dict = json.dumps(all_users)
-  return output_dict
+def get_user_by_id(user_id):
+  user = root.child("users2").child(user_id).get()
+  user_json = json.dumps(user)
+  return user_json
+
+def update_connectionStatus_by_id(user_id, beacon_mac_address):
+  beacon = root.child("users2").child(user_id).child("beacons").order_by_child("mac_address").equal_to(beacon_mac_address).limit_to_first(1).get()
+  print(beacon)
+  #.child(beacon_mac_address).set()
 
 
