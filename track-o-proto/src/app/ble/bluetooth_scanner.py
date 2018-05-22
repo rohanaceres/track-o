@@ -34,6 +34,7 @@ import requests
 import signal
 import threading
 import datetime
+from app.firebase.firebase_connector import update_connectionStatus_by_id
 
 LE_META_EVENT = 0x3e
 OGF_LE_CTL=0x08
@@ -165,6 +166,9 @@ def scan(beacon_mac_address):
 
                         call_count = 0
 
+                        # Set beacon connection status to 1, that is, connected:
+                        update_connectionStatus_by_id(user_id, beacon_mac_address, 1)
+
                     # Other beacon found:
                     else:
                         # Increases the time the specified beacon is not found:
@@ -174,6 +178,9 @@ def scan(beacon_mac_address):
         if (call_count > ble_tag.max_time_out_in_seconds):
             # Beacon is disconnected!
             logging.debug("***** BEACON IS OUT!!! %s *****", datetime.datetime.now())
+
+            # Set beacon connection status to 2, that is, disconnected:
+            update_connectionStatus_by_id(user_id, beacon_mac_address, 2)
 
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
 

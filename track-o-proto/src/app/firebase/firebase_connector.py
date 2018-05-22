@@ -33,9 +33,11 @@ def get_user_by_id(user_id):
   user_json = json.dumps(user)
   return user_json
 
-def update_connectionStatus_by_id(user_id, beacon_mac_address):
-  beacon = root.child("users2").child(user_id).child("beacons").order_by_child("mac_address").equal_to(beacon_mac_address).limit_to_first(1).get()
-  print(beacon)
-  #.child(beacon_mac_address).set()
-
-
+def update_connectionStatus_by_id(user_id, beacon_mac_address, new_connection_status):
+  old_beacon = root.child("users2").child(user_id).child("beacons").order_by_child("macAddress").equal_to(beacon_mac_address).limit_to_first(1).get()
+  old_beacon = json.loads(json.dumps(old_beacon))[beacon_mac_address]
+  
+  new_beacon = old_beacon
+  new_beacon['connectionStatus'] = new_connection_status
+  
+  root.child("users2").child(user_id).child("beacons").child(beacon_mac_address).update(new_beacon)

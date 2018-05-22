@@ -26,5 +26,6 @@ class User():
         parsed_beacons = parsed_json['beacons']
 
         for b in parsed_beacons:
-            new_beacon = Beacon(b['antennaId'], b['connectionStatus'], b['macAddress'])
+            b2 = parsed_beacons[b]
+            new_beacon = Beacon(b2['antennaId'], b2['connectionStatus'], b2['macAddress'])
             self.beacons.append(new_beacon)
