@@ -32,7 +32,7 @@ def go_for_it_girl(argv):
 
         #update_connectionStatus_by_id(user_id, user.beacons[0].mac_address, 5)
 
-        scan(user.beacons[0].mac_address)
+        scan(user_id, user.beacons[0].mac_address)
 
     else:
         print("User with ID '" + user_id + "' not found in the database.")

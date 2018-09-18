@@ -60,7 +60,7 @@ def handler(signum = None, frame = None):
     time.sleep(1)  #here check if process is done
     sys.exit(0)   
     
-def scan(beacon_mac_address):
+def scan(user_id, beacon_mac_address):
     beacon_found = False
 
     for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
