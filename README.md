@@ -21,4 +21,6 @@ sudo pip3 install pybluez
 sudo pip3 install pyrebase
 sudo pip3 install --upgrade google-auth-oauthlib
 sudo pip3 install simplejson
+sudo pip3 install firebase_admin
+sudo pip3 install ww
 ```

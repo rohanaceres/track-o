@@ -4,7 +4,7 @@ import firebase_admin
 from firebase_admin import credentials, db
 
 DATABASE_URL = "https://track-o-proto.firebaseio.com"
-SERVICE_ACCOUNT = "/home/atla/Workspace/track-o/track-o-proto/src/app/firebase/auth/firebase-key.json"
+SERVICE_ACCOUNT = "/home/jack/Workspace/firebase-key.json"
 
 config = {
   "apiKey": "AIzaSyDKnody294Y3WOawF9X_OaerU554P_coQM",
