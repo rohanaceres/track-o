@@ -34,7 +34,7 @@ import requests
 import signal
 import threading
 import datetime
-from app.firebase.firebase_connector import update_connectionStatus_by_id
+#from app.firebase.firebase_connector import update_connectionStatus_by_id
 
 LE_META_EVENT = 0x3e
 OGF_LE_CTL=0x08
@@ -60,7 +60,7 @@ def handler(signum = None, frame = None):
     time.sleep(1)  #here check if process is done
     sys.exit(0)   
     
-def scan(user_id, beacon_mac_address):
+def scan():
     beacon_found = False
 
     for sig in [signal.SIGTERM, signal.SIGINT, signal.SIGHUP, signal.SIGQUIT]:
@@ -114,21 +114,28 @@ def scan(user_id, beacon_mac_address):
     call_count = 0
 
     while True:
+        logging.debug("1")
         old_filter = sock.getsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, 14)
         
         # Creates new filter:
+        logging.debug("2")
         new_filter = bluez.hci_filter_new()
+        logging.debug("3")
         bluez.hci_filter_all_events(new_filter)
+        logging.debug("4")
         bluez.hci_filter_set_ptype(new_filter, bluez.HCI_EVENT_PKT)
+        logging.debug("5")
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, new_filter)
         
         # Receive data from the socket (255 bytes at maximum):
+        logging.debug("6")
         pkt = sock.recv(255)
+        logging.debug("7")
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
 
         # Verifies the type of the event received by the socket:
         if event == bluez.EVT_INQUIRY_RESULT_WITH_RSSI or event == bluez.EVT_NUM_COMP_PKTS or event == bluez.EVT_DISCONN_COMPLETE:
-            i =0
+            i = 0
             
         elif event == LE_META_EVENT:
             subevent = pkt[3]
@@ -144,7 +151,8 @@ def scan(user_id, beacon_mac_address):
 
                 for i in range(0, num_reports):
                     macAdressSeen = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
-                    new_device = True
+
+                    logging.debug('MAC address found: %s', macAdressSeen)
 
                     # Specified beacon found:
                     if (macAdressSeen.lower() == beacon_mac_address.lower()):
@@ -167,7 +175,7 @@ def scan(user_id, beacon_mac_address):
                         call_count = 0
 
                         # Set beacon connection status to 1, that is, connected:
-                        update_connectionStatus_by_id(user_id, beacon_mac_address, 1)
+                        #update_connectionStatus_by_id(user_id, beacon_mac_address, 1)
 
                     # Other beacon found:
                     else:
@@ -180,7 +188,9 @@ def scan(user_id, beacon_mac_address):
             logging.debug("***** BEACON IS OUT!!! %s *****", datetime.datetime.now())
 
             # Set beacon connection status to 2, that is, disconnected:
-            update_connectionStatus_by_id(user_id, beacon_mac_address, 2)
+            # update_connectionStatus_by_id(user_id, beacon_mac_address, 2)
 
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
+    
+    logging.debug('------------------------------')
 
