@@ -114,23 +114,16 @@ def scan():
     call_count = 0
 
     while True:
-        logging.debug("1")
         old_filter = sock.getsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, 14)
         
         # Creates new filter:
-        logging.debug("2")
         new_filter = bluez.hci_filter_new()
-        logging.debug("3")
         bluez.hci_filter_all_events(new_filter)
-        logging.debug("4")
         bluez.hci_filter_set_ptype(new_filter, bluez.HCI_EVENT_PKT)
-        logging.debug("5")
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, new_filter)
         
         # Receive data from the socket (255 bytes at maximum):
-        logging.debug("6")
         pkt = sock.recv(255)
-        logging.debug("7")
         ptype, event, plen = struct.unpack("BBB", pkt[:3])
 
         # Verifies the type of the event received by the socket:
@@ -155,32 +148,32 @@ def scan():
                     logging.debug('MAC address found: %s', macAdressSeen)
 
                     # Specified beacon found:
-                    if (macAdressSeen.lower() == beacon_mac_address.lower()):
-                        # Beacon already found, just updating it's data:
-                        if (beacon_found == True):
+                    # if (macAdressSeen.lower() == beacon_mac_address.lower()):
+                    #     # Beacon already found, just updating it's data:
+                    #     if (beacon_found == True):
 
-                            rssi=''.join(c for c in str(pkt[report_pkt_offset -1]) if c in '-0123456789')
-                            ble_tag.rssid = rssi
+                    #         rssi=''.join(c for c in str(pkt[report_pkt_offset -1]) if c in '-0123456789')
+                    #         ble_tag.rssid = rssi
 
-                            logging.debug('Tag %s is back. (Count %i // Max %s). RSSI %s. DATA %s', ble_tag.mac_address, call_count, str(ble_tag.max_time_out_in_seconds), rssi, pkt[report_pkt_offset -2])
+                    #         logging.debug('Tag %s is back. (Count %i // Max %s). RSSI %s. DATA %s', ble_tag.mac_address, call_count, str(ble_tag.max_time_out_in_seconds), rssi, pkt[report_pkt_offset -2])
                             
-                            new_device = False
+                    #         new_device = False
                         
-                        # Beacon found for the first time!
-                        elif beacon_found == False:
-                            ble_tag.mac_address = macAdressSeen
-                            logging.debug('New beacon with MAC Address \'%s\' detected.', macAdressSeen)
-                            beacon_found = True
+                    #     # Beacon found for the first time!
+                    #     elif beacon_found == False:
+                    #         ble_tag.mac_address = macAdressSeen
+                    #         logging.debug('New beacon with MAC Address \'%s\' detected.', macAdressSeen)
+                    #         beacon_found = True
 
-                        call_count = 0
+                    #     call_count = 0
 
-                        # Set beacon connection status to 1, that is, connected:
-                        #update_connectionStatus_by_id(user_id, beacon_mac_address, 1)
+                    #     # Set beacon connection status to 1, that is, connected:
+                    #     #update_connectionStatus_by_id(user_id, beacon_mac_address, 1)
 
-                    # Other beacon found:
-                    else:
-                        # Increases the time the specified beacon is not found:
-                        call_count += 1
+                    # # Other beacon found:
+                    # else:
+                    #     # Increases the time the specified beacon is not found:
+                    #     call_count += 1
 
         # Verify if the beacon is not responding for a period of time greater than the estimated:
         if (call_count > ble_tag.max_time_out_in_seconds):
