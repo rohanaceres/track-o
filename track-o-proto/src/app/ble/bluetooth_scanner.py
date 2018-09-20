@@ -34,13 +34,16 @@ import requests
 import signal
 import threading
 import datetime
-#from app.firebase.firebase_connector import update_connectionStatus_by_id
+import random
+from app.firebase.firebase_connector import add_one
 
 LE_META_EVENT = 0x3e
 OGF_LE_CTL=0x08
 OCF_LE_SET_SCAN_ENABLE=0x000C
 EVT_LE_CONN_COMPLETE=0x01
 EVT_LE_ADVERTISING_REPORT=0x02
+
+CELL_ID = "celula1"
 
 def print_packet(pkt):
     for c in pkt:
@@ -143,47 +146,16 @@ def scan():
                 report_pkt_offset = 0
 
                 for i in range(0, num_reports):
-                    macAdressSeen = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
+                    macAddressSeen = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
 
-                    logging.debug('MAC address found: %s', macAdressSeen)
+                    logging.debug('MAC address found: %s', macAddressSeen)
+                    datetime = time.strftime("%Y-%m-%d %H:%M:%S")
+                    distance = round(random.uniform(0.8, 3.5), 2)
 
-                    # Specified beacon found:
-                    # if (macAdressSeen.lower() == beacon_mac_address.lower()):
-                    #     # Beacon already found, just updating it's data:
-                    #     if (beacon_found == True):
-
-                    #         rssi=''.join(c for c in str(pkt[report_pkt_offset -1]) if c in '-0123456789')
-                    #         ble_tag.rssid = rssi
-
-                    #         logging.debug('Tag %s is back. (Count %i // Max %s). RSSI %s. DATA %s', ble_tag.mac_address, call_count, str(ble_tag.max_time_out_in_seconds), rssi, pkt[report_pkt_offset -2])
-                            
-                    #         new_device = False
-                        
-                    #     # Beacon found for the first time!
-                    #     elif beacon_found == False:
-                    #         ble_tag.mac_address = macAdressSeen
-                    #         logging.debug('New beacon with MAC Address \'%s\' detected.', macAdressSeen)
-                    #         beacon_found = True
-
-                    #     call_count = 0
-
-                    #     # Set beacon connection status to 1, that is, connected:
-                    #     #update_connectionStatus_by_id(user_id, beacon_mac_address, 1)
-
-                    # # Other beacon found:
-                    # else:
-                    #     # Increases the time the specified beacon is not found:
-                    #     call_count += 1
-
-        # Verify if the beacon is not responding for a period of time greater than the estimated:
-        if (call_count > ble_tag.max_time_out_in_seconds):
-            # Beacon is disconnected!
-            logging.debug("***** BEACON IS OUT!!! %s *****", datetime.datetime.now())
-
-            # Set beacon connection status to 2, that is, disconnected:
-            # update_connectionStatus_by_id(user_id, beacon_mac_address, 2)
+                    add_one({"cellId":CELL_ID, "dateTime":datetime, "distanceFromCell":distance, "macAddress":macAddressSeen})
 
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
+        time.sleep(1)
     
     logging.debug('------------------------------')
 
