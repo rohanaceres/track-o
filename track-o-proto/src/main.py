@@ -1,5 +1,5 @@
 """ System module. """
-import sys
+import sys 
 from app.application import go_for_it_girl
 
 if __name__ == "__main__":

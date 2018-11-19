@@ -14,6 +14,7 @@ from app.ble.bluetooth_tag import BluetoothTag
 ble_tag = BluetoothTag()
 
 import logging
+import firebase_admin
 
 # choose between DEBUG (log every information) or CRITICAL (only error)
 logLevel=logging.DEBUG
@@ -35,7 +36,7 @@ import signal
 import threading
 import datetime
 import random
-from app.firebase.firebase_connector import add_one
+from app.firebase.firebase_connector import upsert_by_macaddress
 
 LE_META_EVENT = 0x3e
 OGF_LE_CTL=0x08
@@ -43,7 +44,9 @@ OCF_LE_SET_SCAN_ENABLE=0x000C
 EVT_LE_CONN_COMPLETE=0x01
 EVT_LE_ADVERTISING_REPORT=0x02
 
-CELL_ID = "celula1"
+CELL_ID = "scenario_a"
+
+TESTBED_SAMPLES = 300
 
 def print_packet(pkt):
     for c in pkt:
@@ -115,6 +118,7 @@ def scan():
     print("Scanning...")
 
     call_count = 0
+    testbed_counter = 0
 
     while True:
         old_filter = sock.getsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, 14)
@@ -136,6 +140,8 @@ def scan():
         elif event == LE_META_EVENT:
             subevent = pkt[3]
             
+            #logging.info(pkt)
+
             pkt = pkt[4:]
 
             if subevent == EVT_LE_CONN_COMPLETE:
@@ -147,15 +153,38 @@ def scan():
 
                 for i in range(0, num_reports):
                     macAddressSeen = packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
+                    
+                    
+                    if "0c:f3:ee:04" in macAddressSeen:
+                        #logging.debug('is beacon!')
+                        
+                        #print "\tfullpacket: ", printpacket(pkt)
+                        #print "\tUDID: ", printpacket(pkt[report_pkt_offset -22: report_pkt_offset - 6])
+                        #print "\tMAJOR: ", printpacket(pkt[report_pkt_offset -6: report_pkt_offset - 4])
+                        #print "\tMINOR: ", printpacket(pkt[report_pkt_offset -4: report_pkt_offset - 2])
+                        #print "\tMAC address: ", packed_bdaddr_to_string(pkt[report_pkt_offset + 3:report_pkt_offset + 9])
 
-                    logging.debug('MAC address found: %s', macAddressSeen)
-                    datetime = time.strftime("%Y-%m-%d %H:%M:%S")
-                    distance = round(random.uniform(0.8, 3.5), 2)
+                        #logging.debug(type(pkt))
+                        #logging.debug(pkt)
+                        #logging.debug(pkt[4:].decode("utf-8")) 
 
-                    add_one({"cellId":CELL_ID, "dateTime":datetime, "distanceFromCell":distance, "macAddress":macAddressSeen})
+                        datetime = time.strftime("%Y-%m-%d %H:%M:%S")
+                        logging.debug('%s, %s, %d', datetime, macAddressSeen, testbed_counter + 1)
+                        distance = -1
+
+                        testbed_counter = testbed_counter + 1
+
+                        try:
+                            upsert_by_macaddress({"cellId":CELL_ID, "dateTime":datetime, "distanceFromCell":distance, "macAddress":macAddressSeen})
+                        except firebase_admin.db.ApiCallError:
+                            logging.error("Error while inserting the beacon into Firebase.")
+
+        # if testbed_counter >= TESTBED_SAMPLES:
+        #     logging.debug('Test finished.')
+        #     break
 
         sock.setsockopt(bluez.SOL_HCI, bluez.HCI_FILTER, old_filter)
-        time.sleep(1)
+        time.sleep(10 / 1000)
     
     logging.debug('------------------------------')
 

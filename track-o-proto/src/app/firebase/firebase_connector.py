@@ -1,6 +1,6 @@
 import simplejson as json
 from collections import OrderedDict
-import firebase_admin
+import firebase_admin 
 from firebase_admin import credentials, db
 import array
 import logging
@@ -26,6 +26,19 @@ firebase_admin.initialize_app(cred,
 print("Firebase initialized.")
 
 root = db.reference()
+
+def get_by_macaddress(macAddress):
+  return root.order_by_child('macAddress').equal_to(macAddress).get()
+
+def upsert_by_macaddress(beacon):
+  b = get_by_macaddress(beacon['macAddress'])
+  if len(b) > 0:
+    print('beacon exists!')
+    b[next(iter(b))].update({'dateTime': beacon['dateTime']})
+    root.update(b)
+  else:
+    print('beacon does not exist. inserting new one.')
+    add_one(beacon)
 
 def get_all():
   return root.get()
